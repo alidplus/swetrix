@@ -1,42 +1,5 @@
 version: "3.8"
 
-x-coolify:
-  name: Swetrix Analytics
-  description: Open-source privacy-focused analytics platform.
-  documentation: https://swetrix.com/docs
-  variables:
-    EMAIL:
-      type: string
-      required: true
-      description: Admin email for initial login
-    SERVICE_PASSWORD_ADMINPASS:
-      type: password
-      required: true
-    SERVICE_PASSWORD_64_JWT_ACCESS_TOKEN_SECRET:
-      type: password
-      required: true
-    SERVICE_PASSWORD_64_JWT_REFRESH_TOKEN_SECRET:
-      type: password
-      required: true
-    SERVICE_PASSWORD_64_REDISPASS:
-      type: password
-      required: true
-    SERVICE_PASSWORD_CHPASS:
-      type: password
-      required: true
-    API_KEY:
-      type: string
-      required: false
-    IP_GEOLOCATION_DB_PATH:
-      type: string
-      required: false
-    DEBUG_MODE:
-      type: string
-      default: "false"
-    CLOUDFLARE_PROXY_ENABLED:
-      type: string
-      default: "false"
-
 services:
   swetrix:
     image: swetrix/swetrix-fe:v3.3.1
@@ -45,6 +8,22 @@ services:
       - swetrix-api
     environment:
       - API_URL=${SERVICE_URL_SWETRIX_API}
+    label:
+      - traefik.enable=true
+      - traefik.http.middlewares.gzip.compress=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.entryPoints=http
+      - traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.middlewares=redirect-to-https
+      - 'traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.rule=Host(`${SERVICE_FQDN_SWETRIX}`) && PathPrefix(`/`)'
+      - traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.service=http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix
+      - traefik.http.services.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.loadbalancer.server.port=3000
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.entryPoints=https
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.middlewares=gzip
+      - 'traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.rule=Host(`${SERVICE_FQDN_SWETRIX}`) && PathPrefix(`/`)'
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.tls.certresolver=letsencrypt
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.tls=true
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.service=https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix
+      - traefik.http.services.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix.loadbalancer.server.port=3000
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ping || exit 1"]
       interval: 30s
@@ -56,14 +35,30 @@ services:
     environment:
       - JWT_ACCESS_TOKEN_SECRET=${SERVICE_PASSWORD_64_JWT_ACCESS_TOKEN_SECRET}
       - JWT_REFRESH_TOKEN_SECRET=${SERVICE_PASSWORD_64_JWT_REFRESH_TOKEN_SECRET}
-      - EMAIL=${EMAIL}
+      - EMAIL=${ADMIN_EMAIL:?admin@example.com}
       - PASSWORD=${SERVICE_PASSWORD_ADMINPASS}
       - API_KEY=${API_KEY}
       - IP_GEOLOCATION_DB_PATH=${IP_GEOLOCATION_DB_PATH}
-      - DEBUG_MODE=${DEBUG_MODE}
-      - CLOUDFLARE_PROXY_ENABLED=${CLOUDFLARE_PROXY_ENABLED}
+      - DEBUG_MODE=${DEBUG_MODE:-false}
+      - CLOUDFLARE_PROXY_ENABLED=${CLOUDFLARE_PROXY_ENABLED:-false}
       - REDIS_HOST=redis
       - CLICKHOUSE_HOST=http://clickhouse
+    label:
+      - traefik.enable=true
+      - traefik.http.middlewares.gzip.compress=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.entryPoints=http
+      - traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.middlewares=redirect-to-https
+      - 'traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.rule=Host(`${SERVICE_FQDN_SWETRIX_API}`) && PathPrefix(`/`)'
+      - traefik.http.routers.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.service=http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api
+      - traefik.http.services.http-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.loadbalancer.server.port=5005
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.entryPoints=https
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.middlewares=gzip
+      - 'traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.rule=Host(`${SERVICE_FQDN_SWETRIX_API}`) && PathPrefix(`/`)'
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.tls=true
+      - traefik.http.routers.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.service=https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api
+      - traefik.http.services.https-0-tw4cg4gsgkc40os8kscc8gw0-swetrix-api.loadbalancer.server.port=5005
     depends_on:
       redis:
         condition: service_healthy
@@ -80,7 +75,7 @@ services:
     environment:
       - REDIS_PORT=6379
       - REDIS_USER=default
-      - REDIS_PASSWORD=${SERVICE_PASSWORD_64_REDISPASS}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       interval: 30s
@@ -93,7 +88,7 @@ services:
       - CLICKHOUSE_DATABASE=analytics
       - CLICKHOUSE_USER=default
       - CLICKHOUSE_PORT=8123
-      - CLICKHOUSE_PASSWORD=${SERVICE_PASSWORD_CHPASS}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-}
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 -O - http://127.0.0.1:8123/ping || exit 1"]
       interval: 30s
