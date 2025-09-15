@@ -8,7 +8,7 @@ services:
       - swetrix-api
     environment:
       - API_URL=${SERVICE_URL_SWETRIX_API}
-    label:
+    labels:
       - traefik.enable=true
       - traefik.http.middlewares.gzip.compress=true
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
@@ -43,7 +43,7 @@ services:
       - CLOUDFLARE_PROXY_ENABLED=${CLOUDFLARE_PROXY_ENABLED:-false}
       - REDIS_HOST=redis
       - CLICKHOUSE_HOST=http://clickhouse
-    label:
+    labels:
       - traefik.enable=true
       - traefik.http.middlewares.gzip.compress=true
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
