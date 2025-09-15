@@ -7,6 +7,8 @@ services:
       - swetrix-api
     environment:
       - API_URL=${SERVICE_URL_SWETRIX_API}
+    ports:
+      - '3801:3000'
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ping || exit 1"]
       interval: 30s
@@ -17,6 +19,8 @@ services:
     image: swetrix/swetrix-api:v3.3.1
     restart: always
     container_name: swetrix-api
+    ports:
+      - '3802:5005'
     environment:
       # Configurable with .env file
       - JWT_ACCESS_TOKEN_SECRET=${SERVICE_PASSWORD_64_JWT_ACCESS_TOKEN_SECRET}
